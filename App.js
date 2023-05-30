@@ -3,9 +3,9 @@ import { StyleSheet, Text, View, TextInput, TouchableOpacity, Alert, Platform } 
 import { NavigationContainer } from '@react-navigation/native';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import { Ionicons } from '@expo/vector-icons';
-import { Notifications } from 'expo';
+import { Notifications } from 'expo-notifications';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import moment from 'moment';;
+import moment from 'moment';
 
 const Drawer = createDrawerNavigator();
 
@@ -55,7 +55,8 @@ const LoginScreen = ({ navigation }) => {
         value={password}
         onChangeText={text => setPassword(text)}
       />
-
+      
+<View style={styles.buttonContainer}></View>
       <TouchableOpacity style={styles.button} onPress={handleLogin}>
         <Text style={styles.buttonText}>Login</Text>
       </TouchableOpacity>
@@ -83,8 +84,9 @@ const HomeScreen = () => {
         id: Date.now().toString(),
         medicineName,
         reminderTime,
+        taken: false,
+        missed: false,
       };
-      
 
       setReminders(prevReminders => [...prevReminders, newReminder]);
 
@@ -98,6 +100,26 @@ const HomeScreen = () => {
 
   const handleDeleteReminder = (id) => {
     setReminders(prevReminders => prevReminders.filter(reminder => reminder.id !== id));
+  };
+
+  const handleToggleTaken = (id) => {
+    setReminders(prevReminders =>
+      prevReminders.map(reminder =>
+        reminder.id === id
+          ? { ...reminder, taken: !reminder.taken, missed: false }
+          : reminder
+      )
+    );
+  };
+
+  const handleToggleMissed = (id) => {
+    setReminders(prevReminders =>
+      prevReminders.map(reminder =>
+        reminder.id === id
+          ? { ...reminder, missed: !reminder.missed, taken: false }
+          : reminder
+      )
+    );
   };
 
   const scheduleNotification = async (reminder) => {
@@ -116,8 +138,15 @@ const HomeScreen = () => {
   };
 
   const registerForPushNotificationsAsync = async () => {
-    // ...
+    const { status } = await Notifications.getPermissionsAsync();
+    if (status !== 'granted') {
+      const { status: newStatus } = await Notifications.requestPermissionsAsync();
+      if (newStatus !== 'granted') {
+        // Permissions not granted, handle accordingly
+      }
+    }
   };
+
 
   const handleTimePicker = (event, selectedTime) => {
     setShowTimePicker(false);
@@ -130,10 +159,6 @@ const HomeScreen = () => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerText}>Medicine Reminder</Text>
-      </View>
-
       <View style={styles.content}>
         <Text style={styles.title}>Home</Text>
 
@@ -165,14 +190,31 @@ const HomeScreen = () => {
           <Text style={styles.buttonText}>Add Reminder</Text>
         </TouchableOpacity>
 
-        <View style={styles.footer}>
-      </View>
-
         <View style={styles.remindersContainer}>
           <Text style={styles.remindersTitle}>Reminders:</Text>
           {reminders.map(reminder => (
             <View key={reminder.id} style={styles.reminderItem}>
               <Text style={styles.reminderText}>{`${reminder.medicineName} at ${reminder.reminderTime}`}</Text>
+              <View style={styles.reminderButtons}>
+                <TouchableOpacity
+                  style={[
+                    styles.reminderButton,
+                    reminder.taken && styles.reminderButtonActive,
+                  ]}
+                  onPress={() => handleToggleTaken(reminder.id)}
+                >
+                  <Text style={styles.reminderButtonText}>Taken</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.reminderButton,
+                    reminder.missed && styles.reminderButtonActive,
+                  ]}
+                  onPress={() => handleToggleMissed(reminder.id)}
+                >
+                  <Text style={styles.reminderButtonText}>Missed</Text>
+                </TouchableOpacity>
+              </View>
               <TouchableOpacity
                 style={styles.deleteButton}
                 onPress={() => handleDeleteReminder(reminder.id)}
@@ -183,10 +225,6 @@ const HomeScreen = () => {
           ))}
         </View>
       </View>
-
-      <View style={styles.footer}>
-        <Text style={styles.footerText}>Medicine Reminder App</Text>
-      </View>
     </View>
   );
 };
@@ -194,9 +232,25 @@ const HomeScreen = () => {
 const App = () => {
   return (
     <NavigationContainer>
-      <Drawer.Navigator>
-        <Drawer.Screen name="Login" component={LoginScreen} />
-        <Drawer.Screen name="Home" component={HomeScreen} />
+      <Drawer.Navigator initialRouteName="Login">
+        <Drawer.Screen
+          name="Login"
+          component={LoginScreen}
+          options={{
+            drawerIcon: ({ color, size }) => (
+              <Ionicons name="person" color={color} size={size} />
+            ),
+          }}
+        />
+        <Drawer.Screen
+          name="Home"
+          component={HomeScreen}
+          options={{
+            drawerIcon: ({ color, size }) => (
+              <Ionicons name="home" color={color} size={size} />
+            ),
+          }}
+        />
       </Drawer.Navigator>
     </NavigationContainer>
   );
@@ -205,27 +259,22 @@ const App = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  header: {
-    backgroundColor: 'blue',
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
-  },
-  headerText: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: 'white',
-    marginLeft: 16,
+    backgroundColor: '#f2f2f2',
+    paddingHorizontal: 16,
+    paddingTop: 25,
   },
   content: {
     flex: 1,
-    padding: 16,
+    width: '100%',
+    paddingHorizontal: 16,
+    paddingTop: 16,
   },
+
   title: {
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 24,
+    textalign: 'center',
   },
   input: {
     height: 40,
@@ -233,6 +282,7 @@ const styles = StyleSheet.create({
     borderColor: 'gray',
     marginBottom: 16,
     padding: 8,
+    borderRadius: 5,
   },
   timePickerContainer: {
     flexDirection: 'row',
@@ -254,11 +304,19 @@ const styles = StyleSheet.create({
   timePickerButtonText: {
     fontSize: 16,
   },
-  button: {
-    backgroundColor: 'blue',
-    padding: 10,
-    borderRadius: 5,
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     marginBottom: 16,
+    width: '50%',
+  },
+
+  button: {
+  backgroundColor: 'blue',
+  paddingHorizontal: 20,
+  paddingVertical: 10,
+  borderRadius: 5,
+  marginBottom: 16,
   },
   buttonText: {
     color: 'white',
@@ -283,6 +341,24 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
   },
+  reminderButtons: {
+    flexDirection: 'row',
+    marginRight: 8,
+  },
+  reminderButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 5,
+    backgroundColor: 'lightgray',
+    marginRight: 8,
+  },
+  reminderButtonActive: {
+    backgroundColor: 'green',
+  },
+  reminderButtonText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
   deleteButton: {
     backgroundColor: 'red',
     paddingHorizontal: 12,
@@ -293,14 +369,6 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 14,
     fontWeight: 'bold',
-  },
-  footer: {
-    backgroundColor: 'lightgray',
-    alignItems: 'center',
-    padding: 8,
-  },
-  footerText: {
-    fontSize: 12,
   },
 });
 
