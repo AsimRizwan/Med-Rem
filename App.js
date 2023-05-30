@@ -4,7 +4,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 
 const Drawer = createDrawerNavigator();
-// world
+
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -41,7 +41,7 @@ const LoginScreen = ({ navigation }) => {
         style={styles.input}
         placeholder="Email"
         value={email}
-        onChangeText={text => setEmail(text)}
+        onChangeText={(text) => setEmail(text)}
       />
 
       <TextInput
@@ -49,7 +49,7 @@ const LoginScreen = ({ navigation }) => {
         placeholder="Password"
         secureTextEntry
         value={password}
-        onChangeText={text => setPassword(text)}
+        onChangeText={(text) => setPassword(text)}
       />
 
       <TouchableOpacity style={styles.button} onPress={handleLogin}>
@@ -66,11 +66,20 @@ const LoginScreen = ({ navigation }) => {
 const HomeScreen = () => {
   const [medicineName, setMedicineName] = useState('');
   const [reminderTime, setReminderTime] = useState('');
+  const [reminders, setReminders] = useState([]);
 
   const handleAddReminder = () => {
     if (medicineName && reminderTime) {
       // Perform necessary logic for adding the reminder
       console.log('Reminder added:', medicineName, reminderTime);
+
+      const newReminder = {
+        id: Date.now().toString(),
+        medicineName,
+        reminderTime,
+      };
+
+      setReminders([...reminders, newReminder]);
 
       // Clear the input fields
       setMedicineName('');
@@ -86,19 +95,29 @@ const HomeScreen = () => {
         style={styles.input}
         placeholder="Enter medicine name"
         value={medicineName}
-        onChangeText={text => setMedicineName(text)}
+        onChangeText={(text) => setMedicineName(text)}
       />
 
       <TextInput
         style={styles.input}
         placeholder="Enter reminder time"
         value={reminderTime}
-        onChangeText={text => setReminderTime(text)}
+        onChangeText={(text) => setReminderTime(text)}
       />
 
       <TouchableOpacity style={styles.button} onPress={handleAddReminder}>
         <Text style={styles.buttonText}>Add Reminder</Text>
       </TouchableOpacity>
+
+      <View>
+        <Text style={styles.remindersTitle}>Reminders:</Text>
+        {reminders.map((reminder) => (
+          <View key={reminder.id} style={styles.reminderItem}>
+            <Text>{reminder.medicineName}</Text>
+            <Text>{reminder.reminderTime}</Text>
+          </View>
+        ))}
+      </View>
     </View>
   );
 };
@@ -145,6 +164,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     textAlign: 'center',
+  },
+  remindersTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginTop: 20,
+  },
+  reminderItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 8,
   },
 });
 
