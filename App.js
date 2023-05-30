@@ -8,6 +8,8 @@ const Drawer = createDrawerNavigator();
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
 
   const handleLogin = () => {
     // Perform login logic here
@@ -33,6 +35,23 @@ const LoginScreen = ({ navigation }) => {
     navigation.navigate('Home');
   };
 
+  const validateEmail = () => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setEmailError('Invalid email address');
+    } else {
+      setEmailError('');
+    }
+  };
+
+  const validatePassword = () => {
+    if (password.length < 6) {
+      setPasswordError('Password must be at least 6 characters long');
+    } else {
+      setPasswordError('');
+    }
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Medicine Reminder</Text>
@@ -42,7 +61,9 @@ const LoginScreen = ({ navigation }) => {
         placeholder="Email"
         value={email}
         onChangeText={(text) => setEmail(text)}
+        onBlur={validateEmail}
       />
+      {emailError ? <Text style={styles.errorText}>{emailError}</Text> : null}
 
       <TextInput
         style={styles.input}
@@ -50,13 +71,23 @@ const LoginScreen = ({ navigation }) => {
         secureTextEntry
         value={password}
         onChangeText={(text) => setPassword(text)}
+        onBlur={validatePassword}
       />
+      {passwordError ? <Text style={styles.errorText}>{passwordError}</Text> : null}
 
-      <TouchableOpacity style={styles.button} onPress={handleLogin}>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={handleLogin}
+        disabled={!!emailError || !!passwordError}
+      >
         <Text style={styles.buttonText}>Login</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.button} onPress={handleSignUp}>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={handleSignUp}
+        disabled={!!emailError || !!passwordError}
+      >
         <Text style={styles.buttonText}>Sign Up</Text>
       </TouchableOpacity>
     </View>
@@ -109,15 +140,13 @@ const HomeScreen = () => {
         <Text style={styles.buttonText}>Add Reminder</Text>
       </TouchableOpacity>
 
-      <View>
-        <Text style={styles.remindersTitle}>Reminders:</Text>
-        {reminders.map((reminder) => (
-          <View key={reminder.id} style={styles.reminderItem}>
-            <Text>{reminder.medicineName}</Text>
-            <Text>{reminder.reminderTime}</Text>
-          </View>
-        ))}
-      </View>
+      <Text style={styles.remindersTitle}>Reminders:</Text>
+      {reminders.map((reminder) => (
+        <View key={reminder.id} style={styles.reminderItem}>
+          <Text>{reminder.medicineName}</Text>
+          <Text>{reminder.reminderTime}</Text>
+        </View>
+      ))}
     </View>
   );
 };
@@ -174,6 +203,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginTop: 8,
+  },
+  errorText: {
+    color: 'red',
+    marginBottom: 8,
   },
 });
 
