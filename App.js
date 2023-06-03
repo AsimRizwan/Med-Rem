@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Notifications } from 'expo-notifications';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import moment from 'moment';
+import { Picker } from '@react-native-picker/picker';
 
 const Drawer = createDrawerNavigator();
 
@@ -55,8 +56,7 @@ const LoginScreen = ({ navigation }) => {
         value={password}
         onChangeText={text => setPassword(text)}
       />
-      
-<View style={styles.buttonContainer}></View>
+
       <TouchableOpacity style={styles.button} onPress={handleLogin}>
         <Text style={styles.buttonText}>Login</Text>
       </TouchableOpacity>
@@ -229,6 +229,93 @@ const HomeScreen = () => {
   );
 };
 
+// Define the SettingsScreen component
+const SettingsScreen = () => {
+  // State for the selected ringtone
+  const [selectedRingtone, setSelectedRingtone] = useState('');
+
+  // State for the delay time
+  const [delayTime, setDelayTime] = useState(0);
+
+  // State for the selected time format
+  const [selectedTimeFormat, setSelectedTimeFormat] = useState('');
+
+  // State for the selected theme
+  const [selectedTheme, setSelectedTheme] = useState('');
+
+  // List of available ringtones
+  const ringtones = ['Ringtone 1', 'Ringtone 2', 'Ringtone 3'];
+
+  // List of available time formats
+  const timeFormats = ['12-hour', '24-hour'];
+
+  // List of available themes
+  const themes = ['Theme 1', 'Theme 2', 'Theme 3'];
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>Settings</Text>
+
+      {/* Ringtone Setting */}
+      <View style={styles.settingContainer}>
+        <Text style={styles.settingTitle}>Ringtone</Text>
+        <Picker
+          selectedValue={selectedRingtone}
+          onValueChange={itemValue => setSelectedRingtone(itemValue)}
+          style={styles.picker}
+        >
+          {ringtones.map(ringtone => (
+            <Picker.Item key={ringtone} label={ringtone} value={ringtone} />
+          ))}
+        </Picker>
+      </View>
+
+      {/* Delay Time Setting */}
+      <View style={styles.settingContainer}>
+        <Text style={styles.settingTitle}>Delay Time (in seconds)</Text>
+        <Picker
+          selectedValue={delayTime.toString()}
+          onValueChange={itemValue => setDelayTime(parseInt(itemValue, 10))}
+          style={styles.picker}
+        >
+          {[0, 5, 10, 15].map(delay => (
+            <Picker.Item key={delay} label={delay.toString()} value={delay.toString()} />
+          ))}
+        </Picker>
+      </View>
+
+      {/* Time Format Setting */}
+      <View style={styles.settingContainer}>
+        <Text style={styles.settingTitle}>Time Format</Text>
+        <Picker
+          selectedValue={selectedTimeFormat}
+          onValueChange={itemValue => setSelectedTimeFormat(itemValue)}
+          style={styles.picker}
+        >
+          {timeFormats.map(format => (
+            <Picker.Item key={format} label={format} value={format} />
+          ))}
+        </Picker>
+      </View>
+
+      {/* Theme Setting */}
+      <View style={styles.settingContainer}>
+        <Text style={styles.settingTitle}>Theme</Text>
+        <Picker
+          selectedValue={selectedTheme}
+          onValueChange={itemValue => setSelectedTheme(itemValue)}
+          style={styles.picker}
+        >
+          {themes.map(theme => (
+            <Picker.Item key={theme} label={theme} value={theme} />
+          ))}
+        </Picker>
+      </View>
+    </View>
+  );
+};
+
+
 const App = () => {
   return (
     <NavigationContainer>
@@ -251,6 +338,15 @@ const App = () => {
             ),
           }}
         />
+        <Drawer.Screen
+          name="Settings"
+          component={SettingsScreen}
+          options={{
+            drawerIcon: ({ color, size }) => (
+              <Ionicons name="settings" color={color} size={size} />
+            ),
+          }}
+        />
       </Drawer.Navigator>
     </NavigationContainer>
   );
@@ -269,7 +365,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 16,
   },
-
   title: {
     fontSize: 24,
     fontWeight: 'bold',
@@ -310,13 +405,12 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     width: '50%',
   },
-
   button: {
-  backgroundColor: 'blue',
-  paddingHorizontal: 20,
-  paddingVertical: 10,
-  borderRadius: 5,
-  marginBottom: 16,
+    backgroundColor: 'blue',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 5,
+    marginBottom: 16,
   },
   buttonText: {
     color: 'white',
@@ -370,6 +464,21 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: 'bold',
   },
+settingContainer: {
+  marginBottom: 24,
+},
+settingTitle: {
+  fontSize: 16,
+  fontWeight: 'bold',
+  marginBottom: 8,
+},
+picker: {
+  borderWidth: 1,
+  borderColor: '#ccc',
+  borderRadius: 4,
+  paddingHorizontal: 8,
+  paddingVertical: 4,
+},
 });
 
 export default App;
